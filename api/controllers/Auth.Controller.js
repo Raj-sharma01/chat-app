@@ -7,20 +7,43 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 
 const authController = {
     login: async (req, res) => {
-        const { username, password } = req.body;
-        const foundUser = await UserModel.findOne({ username });
-        if (foundUser) {
-            const passOk = bcrypt.compareSync(password, foundUser.password);
-            if (passOk) {
+        try { 
+            console.log("login 1")
+            const { username, password } = req.body;
+            console.log("login 2")
+            const foundUser = await UserModel.findOne({ username });
+            console.log("login 3")
+            console.log("foundUser:", foundUser);
+            if (foundUser) {
+              const passOk = bcrypt.compareSync(password, foundUser.password);
+              if (passOk) {
                 Jwt.sign({ userId: foundUser._id, username }, jwtSecret, {}, (err, token) => {
-                    if (err) throw err;
-                    res.cookie('token', token).status(201).json({
-                        id: foundUser._id,
-                    });
+                  if (err) throw err;
+                  res.cookie('token', token).status(201).json({
+                    id: foundUser._id,
+                  });
                 });
+              } else {
+                // Incorrect password
+                console.log("Incorrect password")
+                res.status(401).json({
+                  message: 'Wrong credentials',
+                });
+              }
+            } else {
+              // User not found
+              console.log("User not found")
+              res.status(401).json({
+                message: 'Wrong credentials',
+              });
             }
-        }
-        //else send notification for access denied 
+          } catch (err) {
+            console.log("error ", err.message )
+            res.status(500).json({
+              message: 'Internal server error',
+              error: err.message,
+            });
+          }
     },
 
     logout: async (req, res) => {

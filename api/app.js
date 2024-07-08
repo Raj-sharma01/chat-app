@@ -6,58 +6,58 @@ import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { cwd } from 'process';
-import  Jwt  from 'jsonwebtoken';
+import Jwt from 'jsonwebtoken';
 import fs from 'fs'
 import colors from 'colors'
 import authRoutes from './routes/Auth.Route.js';
 import chatRoutes from './routes/Chat.Route.js';
 import groupRoutes from './routes/Group.Route.js';
 import { MessageModel } from './models/Message.Model.js';
-import { encrypt, decrypt } from './utils/cryptoUtils.js';  
+import { encrypt, decrypt } from './utils/cryptoUtils.js';
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { 
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+    cors: {
+        origin: ["*", "http://localhost:5173", "http://127.0.0.1:5173"],
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
 });
 const __dirname = cwd()
-// app.use((req, res, next) => {
-//     res.header('Access-Control-Allow-Credentials', true);
-//     res.header('Access-Control-Allow-Origin', ['http://localhost:5173', 'http://127.0.0.1:5173']); // Replace with your frontend URL
-//     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-//     res.header('Access-Control-Allow-Headers', 'Content-Type');
-//     next();
-//   });
-  
+
 app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use(express.json());
 app.use(cookieParser());//cookieparse must be above cors
-app.use(cors({ 
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-  credentials: true,  
+app.use(cors({
+    origin: ['*', 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    credentials: true,
 }));
+
+
 
 mongoose.connect(process.env.MONGO_URL);
 
 mongoose.connection.once('open', () => {
-  console.log("Database connected successfully".bgCyan.white); 
-});   
- 
-mongoose.connection.on('error', (error) => { 
-  console.log('oops error ', error);  
-  console.log('mongoose error');
+    console.log("Database connected successfully".bgCyan.white);
 });
-  
-app.use('', authRoutes); 
-app.use('', chatRoutes);   
-app.use('', groupRoutes) 
+
+mongoose.connection.on('error', (error) => {
+    console.log('oops error ', error);
+    console.log('mongoose error');
+});
+
+app.use((req, res, next) => {
+    console.log(`Request received: ${req.method} ${req.url}`);
+    next();
+});
+
+app.use('', authRoutes);
+app.use('', chatRoutes);
+app.use('', groupRoutes)
 
 httpServer.listen(4040, () => {
-  console.log("server is running on port 4040".bgGreen);
+    console.log("server is running on port 4040".bgGreen);
 });
 
 // Socket.IO setup
@@ -118,12 +118,12 @@ io.on('connection', async (socket) => {
 
     socket.on('message', async (message) => {
         console.log("got a message", message)
-        const messageData = JSON.parse(message) 
+        const messageData = JSON.parse(message)
         const { recipient, text, file } = messageData;
         let filename = null;
         if (file) {
             console.log('size', file.data.length);
-            const parts = file.name.split('.'); 
+            const parts = file.name.split('.');
             const ext = parts[parts.length - 1];
             filename = Date.now() + '.' + ext;
             const path = __dirname + '/uploads/' + filename;
@@ -140,35 +140,35 @@ io.on('connection', async (socket) => {
         //         file: file ? filename : null,
         //     });
 
-            if (recipient && (text || file)) {
-                const { encryptedText, iv } = encrypt(text || ''); // Encrypt the message
-                const messageDoc = await MessageModel.create({
-                    sender: socket.userId,
-                    recipient,
-                    encryptedText,
-                    iv,
-                    file: file ? filename : null,
-                });
+        if (recipient && (text || file)) {
+            const { encryptedText, iv } = encrypt(text || ''); // Encrypt the message
+            const messageDoc = await MessageModel.create({
+                sender: socket.userId,
+                recipient,
+                encryptedText,
+                iv,
+                file: file ? filename : null,
+            });
 
 
             const sockets = Array.from(io.sockets.sockets)
             sockets.forEach(([id, socket]) => {
                 // console.log(`Socket ID: ${socket.userId} and recipent : ${recipient}`);
-                if (socket.userId === recipient) { 
+                if (socket.userId === recipient) {
                     console.log("got it")
                     console.log(`Socket ID: ${socket.userId} and recipent : ${recipient}`);
                     io.to(socket.id).emit("message", JSON.stringify({
                         text,
-                        sender: socket.userId, 
-                        recipient, 
+                        sender: socket.userId,
+                        recipient,
                         file: file ? filename : null,
                         _id: messageDoc._id,
-                    })) 
+                    }))
                     // return false;
                 }
             });
 
-        } 
+        }
 
     })
 

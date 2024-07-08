@@ -1,6 +1,7 @@
 import {useContext, useState} from "react";
 import axios from "axios";
 import { UserContext } from "./components/UserContext";
+import { toast } from "react-toastify";
 
 const RegisterAndLoginForm = () => {
 
@@ -13,15 +14,25 @@ const RegisterAndLoginForm = () => {
       ev.preventDefault();
       const url = isLoginOrRegister === 'register' ? 'register' : 'login';
       console.log( {username,password})
-      const {data} = await axios.post(url, {username,password});
-      console.log(data);
-      setLoggedInUsername(username);
-      setId(data.id);
+      try {
+        const { data } = await axios.post(url, { username, password });
+        setLoggedInUsername(username);
+        setId(data.id);
+        toast.success('Login successful!');
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          toast.error('Wrong credentials, please try again.');
+        } else {
+          toast.error('An error occurred, please try again later.');
+        }
+      }
     } 
 
   return (
     <div className="bg-blue-50 h-screen flex items-center">
+    
     <form className="w-64 mx-auto mb-12" onSubmit={handleSubmit}>
+    <div className="font-bold text-blue-500 text-3xl flex justify-center pb-5">SwiftChat 🪁</div>
       <input value={username}
              onChange={ev => setUsername(ev.target.value)}
              type="text" placeholder="username"
@@ -38,15 +49,15 @@ const RegisterAndLoginForm = () => {
         {isLoginOrRegister === 'register' && (
           <div>
             Already a member?
-            <button className="ml-1" onClick={() => setIsLoginOrRegister('login')}>
+            <button className="ml-1 text-blue-500" onClick={() => setIsLoginOrRegister('login')}>
               Login here
             </button>
           </div>
         )}
         {isLoginOrRegister === 'login' && (
           <div>
-            Dont have an account?
-            <button className="ml-1" onClick={() => setIsLoginOrRegister('register')}>
+            Don't have an account?
+            <button className="ml-1 text-blue-500" onClick={() => setIsLoginOrRegister('register')}>
               Register
             </button>
           </div>

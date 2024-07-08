@@ -1,74 +1,17 @@
-# Pros and Cons of Socket.IO
+# SwiftChat 🪁
 
-## Pros
+SwiftChat is a real-time chat application built using the MERN stack (MongoDB, Express.js, React, Node.js) and Socket.IO. It supports user registration, login, real-time messaging, and file sharing.
 
-- ### Broadcasting
+## Features
 
-- ### Multiplexing
+- User Registration and Login
+- Real-time messaging with Socket.IO
+- File sharing
+- Notifications using React-Toastify
 
+## Tech Stack
 
-- ### Auto Reconnection
-
-Socket.IO provides automatic reconnection capabilities, allowing clients to reconnect to the server seamlessly.
-
-- ### Heartbeat Mechanism (Ping/Pong)
-
-Socket.IO uses a ping/pong mechanism for heartbeat checks to ensure the connection's health. 
-### Below is a raw implementation of Ping/Pong mechanism:
-
-```javascript
-// Server-side
-io.on('connection', async (socket) => {
-
-  function notifyAboutOnlinePeople() {
-    const onlineUsers = [...Array.from(io.sockets.sockets)].map(([id, s]) => ({ username: s.username, userId: s.userId }));
-    io.emit('onlineUsers', onlineUsers);
-  }
-
-  socket.isAlive = true;
-
-  socket.timer = setInterval(() => {
-    socket.emit('ping');
-    socket.deathTimer = setTimeout(() => {
-      socket.isAlive = false;
-      clearInterval(socket.timer);
-      socket.disconnect(true);
-      notifyAboutOnlinePeople();
-      console.log('dead');
-    }, 1000);
-  }, 5000);
-
-  socket.on('pong', () => {
-    clearTimeout(socket.deathTimer);
-  });
-
-  socket.on('disconnect', () => {
-    clearInterval(socket.timer);
-    notifyAboutOnlinePeople();
-    console.log('disconnected');
-  });
-
-  notifyAboutOnlinePeople();
-});
-```
-```javascript
-// Client-side ping/pong implementation:
-socket.on('ping', () => {
-  socket.emit('pong');
-});
-```
-
-
-## Cons of Socket.IO
-
-- In terms of memory usage, Socket.IO may perform poorly compared to a plain WebSocket server based on the ws package.
-
-
-
-
-
-
-
-
-
-
+- **Frontend**: React, Tailwind CSS, React-Toastify
+- **Backend**: Node.js, Express.js, MongoDB, Socket.IO
+- **Authentication**: JWT (JSON Web Tokens)
+- **Encryption**: bcrypt for password hashing

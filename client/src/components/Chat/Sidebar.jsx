@@ -9,6 +9,11 @@ const Sidebar = ({ onlinePeople, offlinePeople, setSelectedUserId, selectedUserI
 
   const { username, id, setId, setUsername } = useContext(UserContext);
 
+  const handleLogout = async () => {
+    await axios.post('/logout');
+    setUsername(null);
+    setId(null);
+  };
   const createGroup = async () => {
     const groupName = prompt('Enter group name:');
     const members = prompt('Enter member usernames, separated by commas:').split(',').map(username => username.trim());
@@ -45,9 +50,9 @@ const Sidebar = ({ onlinePeople, offlinePeople, setSelectedUserId, selectedUserI
   return (
     <div className="bg-white w-1/3 flex flex-col">
       <div className="flex-grow">
-        <div className='flex'>
+        <div className='flex justify-between'>
           <Logo />
-          <button className='bg-blue-300 rounded-md' onClick={createGroup}>Create Group</button>
+          <button className='bg-blue-400 rounded-md mx-3 my-2 px-3 font-bold text-white ' onClick={handleLogout} >Logout</button>
         </div>
         {groups?.map(group=>(
           <Contact
