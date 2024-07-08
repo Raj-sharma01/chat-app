@@ -3,7 +3,8 @@ import { UserContextProvider } from "./components/UserContext";
 import Routes from "./Routes";
 
 function App() {
-  axios.defaults.baseURL = 'http://localhost:4040';
+  console.log(import.meta.env.VITE_BACKEND_URL)
+  axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
   axios.defaults.withCredentials = true;
   return (
     <>
