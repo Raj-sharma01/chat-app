@@ -5,6 +5,8 @@ import {UserModel} from '../models/User.Model.js';
 const jwtSecret = process.env.JWT_SECRET_KEY;
 const bcryptSalt = bcrypt.genSaltSync(10);
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const authController = {
     login: async (req, res) => {
         try { 
@@ -19,9 +21,13 @@ const authController = {
               if (passOk) {
                 Jwt.sign({ userId: foundUser._id, username }, jwtSecret, {}, (err, token) => {
                   if (err) throw err;
-                  res.cookie('token', token, { sameSite: 'None'}).status(201).json({
+                  res.cookie('token', token, {
+                    httpOnly: true,
+                    sameSite: 'None',
+                    secure: isProduction, // true in production, false in development
+                }).status(201).json({
                     id: foundUser._id,
-                  });
+                });
                 });
               } else {
                 // Incorrect password
@@ -63,7 +69,11 @@ const authController = {
                 if (err) throw err;
                 console.log("signing a cookie")
                 // , { secure: process.env.NODE_ENV === 'production', sameSite: 'None' }
-                res.cookie('token', token,{sameSite: 'None'}).status(201).json({
+                res.cookie('token', token, {
+                  httpOnly: true,
+                  sameSite: 'None',
+                  secure: isProduction, // true in production, false in development
+                }).status(201).json({
                     id: createdUser._id,
                 });
 
