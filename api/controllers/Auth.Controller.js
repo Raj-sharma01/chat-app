@@ -19,7 +19,7 @@ const authController = {
               if (passOk) {
                 Jwt.sign({ userId: foundUser._id, username }, jwtSecret, {}, (err, token) => {
                   if (err) throw err;
-                  res.cookie('token', token).status(201).json({
+                  res.cookie('token', token, { sameSite: 'None'}).status(201).json({
                     id: foundUser._id,
                   });
                 });
@@ -63,7 +63,7 @@ const authController = {
                 if (err) throw err;
                 console.log("signing a cookie")
                 // , { secure: process.env.NODE_ENV === 'production', sameSite: 'None' }
-                res.cookie('token', token).status(201).json({
+                res.cookie('token', token,{sameSite: 'None'}).status(201).json({
                     id: createdUser._id,
                 });
 
