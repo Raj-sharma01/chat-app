@@ -19,7 +19,7 @@ const Chat = () => {
 
   useEffect(() => {
     //withCredentials: true  -- enable transfer credentials (cookies) during cors
-    const newSocket = io("http://localhost:4040", {
+    const newSocket = io(import.meta.env.VITE_BACKEND_URL, {
       withCredentials: true,
       reconnection: true, //default
       // reconnectionAttempts: 5,
